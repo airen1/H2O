@@ -654,7 +654,7 @@
         var yaw = 0;
         var pitch = 0;
 
-        //  function init() {
+          function init() {
         // ... ваш код инициализации сцены, камеры и рендерера ...
 
         // Создание сферы для отображения 360° панорамы
@@ -664,17 +664,17 @@
               depthWrite: false, // Не записывать в глубину
           });*/
 
-        /*   loader.load('untitled.glb', function (gltf) {
+           loader.load('flat (2).glb', function (gltf) {
                model = gltf.scene;
 
                // Создаем невидимый материал для Raycast
-               const invisibleMaterial = new THREE.MeshBasicMaterial({
+            /*   const invisibleMaterial = new THREE.MeshBasicMaterial({
                    transparent: true,
                    opacity: 0, // Делаем материал невидимым
                    depthWrite: false // Отключаем запись в глубину
-               });
+               });*/
 
-               model.traverse(function (child) {
+              /* model.traverse(function (child) {
                    if (child.isMesh) {
                        // Заменяем материал на невидимый
                        child.material = invisibleMaterial;
@@ -690,7 +690,7 @@
                        child.userData.originalMaterial = child.material;
                        child.visible = false; // Делаем оригинальный объект невидимым
                    }
-               });
+               });*/
 
                scene.add(model); // Добавляем модель на сцену
            });
@@ -705,7 +705,7 @@
           // scene.add(sphere);
 
            loadPanorama(0); // 
-       }*/
+       }
 
         function onDocumentMouseMove(event) {
             if (isMouseDown) {
@@ -836,7 +836,7 @@
             stats.end(); // Конец измерения производительности
         }
 
-        // init();
+         init();
         animate();
     </script>
 </body>
