@@ -117,11 +117,11 @@
 
 
 
-        /* const pmremGenerator = new THREE.PMREMGenerator(renderer);
+         const pmremGenerator = new THREE.PMREMGenerator(renderer);
          pmremGenerator.compileEquirectangularShader();
          const environment = new THREE.RoomEnvironment();
          var defaultEnvMap = pmremGenerator.fromScene(environment).texture;
-          scene.environment = defaultEnvMap;*/
+         // scene.environment = defaultEnvMap;
 
         /* var floorGeometry = new THREE.PlaneGeometry(200, 200);
          var floorMaterial = new THREE.MeshStandardMaterial({ color: 0x999999, side: THREE.DoubleSide });
@@ -151,8 +151,8 @@
         scene.add(directionalLight);*/
 
         // Добавляем окружающий свет
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
-        scene.add(ambientLight);
+      //  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+      //  scene.add(ambientLight);
 
 
         // Пример объекта
@@ -256,7 +256,7 @@
                         var envMap = pmremGenerator.fromEquirectangular(hdrTexture).texture;
                         scene.environment = envMap;
                         // Настройка экспозиции
-                        //scene.environment.encoding = THREE.sRGBEncoding;
+                        scene.environment.encoding = THREE.sRGBEncoding;
 
                         /*  // Создание сферы для окружения
                           const sphereGeometry = new THREE.SphereGeometry(500, 64, 64);
