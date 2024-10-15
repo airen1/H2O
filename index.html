@@ -80,18 +80,18 @@
         var container = document.getElementById('3d-viewer');
 
         // Задайте желаемое разрешение рендеринга
-        var renderWidth = 1920;
-        var renderHeight = 800;
-        // var renderWidth = container.clientWidth * 0.75;
-        // var renderHeight = container.clientHeight * 0.75;
+       // var renderWidth = 1920;
+       // var renderHeight = 800;
+         var renderWidth = container.clientWidth/* * 0.75*/;
+         var renderHeight = container.clientHeight /** 0.75*/;
         var camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 200);
 
 
         var renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true /*alpha: true*/ });
 
-        renderer.setPixelRatio(1);
+       // renderer.setPixelRatio(1);
         renderer.setSize(renderWidth, renderHeight);
-        //renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(window.devicePixelRatio);
 
         //renderer.setSize(window.innerWidth * 0.75, window.innerHeight * 0.75); // Уменьшение размера рендерера
         // renderer.setPixelRatio(window.devicePixelRatio > 1 ? 1 : window.devicePixelRatio); // Уменьшение соотношения пикселей на высоких дисплеях
