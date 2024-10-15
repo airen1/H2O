@@ -121,7 +121,7 @@
          pmremGenerator.compileEquirectangularShader();
          const environment = new THREE.RoomEnvironment();
          var defaultEnvMap = pmremGenerator.fromScene(environment).texture;
-         // scene.environment = defaultEnvMap;
+          scene.environment = defaultEnvMap;
 
         /* var floorGeometry = new THREE.PlaneGeometry(200, 200);
          var floorMaterial = new THREE.MeshStandardMaterial({ color: 0x999999, side: THREE.DoubleSide });
