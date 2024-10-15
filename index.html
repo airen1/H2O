@@ -308,6 +308,28 @@
         camera.lookAt(2, cameraHeight, 1);
 
 
+// Создаем камеру для карты (вид сверху)
+const mapCamera = new THREE.OrthographicCamera(-10, 10, 10, -10, 0.1, 100);
+mapCamera.position.set(0, 20, 0); // Камера расположена высоко и смотрит вниз
+mapCamera.layers.enable(0); 
+mapCamera.lookAt(0, 0, 0); // Смотрит на центр сцены
+
+// Рендер для карты
+const mapRenderer = new THREE.WebGLRenderer();
+mapRenderer.setSize(200, 200); // Размер карты (например, 200x200 пикселей)
+document.body.appendChild(mapRenderer.domElement);
+
+// Создание маркера для отображения положения основной камеры на карте
+const markerGeometry = new THREE.CircleGeometry(0.2, 32); // Маленький кружок
+const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Красный цвет
+const cameraMarker = new THREE.Mesh(markerGeometry, markerMaterial);
+scene.add(cameraMarker);
+
+// Функция для обновления положения маркера на карте
+function updateCameraMarker() {
+    cameraMarker.position.set(camera.position.x, 0.1, camera.position.z); // Обновляем положение маркера
+}
+
         /*  const sunlight = new THREE.DirectionalLight(0xffffff, 1); // белый свет с интенсивностью 1
           sunlight.position.set(50, 100, 50); // позиция света
           sunlight.target.position.set(0, 0, 0); // направление света на центр сцены
@@ -833,6 +855,11 @@
             stats.begin(); // Начало измерения производительности
             requestAnimationFrame(animate);
             renderer.render(scene, camera);
+            // Обновляем маркер камеры
+    updateCameraMarker();
+
+// Рендер сцены для карты (вид сверху)
+mapRenderer.render(scene, mapCamera);
             stats.end(); // Конец измерения производительности
         }
 
