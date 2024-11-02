@@ -77,24 +77,20 @@
 
     <script>
         var scene = new THREE.Scene();
+
         var container = document.getElementById('3d-viewer');
 
         // Задайте желаемое разрешение рендеринга
-       // var renderWidth = 1920;
-       // var renderHeight = 800;
-         var renderWidth = container.clientWidth/* * 0.75*/;
-         var renderHeight = container.clientHeight /** 0.75*/;
+        // var renderWidth = 1920;
+        // var renderHeight = 800;
+        var renderWidth = container.clientWidth/* * 0.75*/;
+        var renderHeight = container.clientHeight /** 0.75*/;
         var camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 200);
 
 
-        var renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true /*alpha: true*/ });
-
-       // renderer.setPixelRatio(1);
+        var renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true });
         renderer.setSize(renderWidth, renderHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
-
-        //renderer.setSize(window.innerWidth * 0.75, window.innerHeight * 0.75); // Уменьшение размера рендерера
-        // renderer.setPixelRatio(window.devicePixelRatio > 1 ? 1 : window.devicePixelRatio); // Уменьшение соотношения пикселей на высоких дисплеях
 
 
 
@@ -102,26 +98,30 @@
         renderer.domElement.style.height = '100%';
         renderer.domElement.style.imageRendering = 'auto';
         container.appendChild(renderer.domElement);
+
         var size = new THREE.Vector2();
         renderer.getSize(size);
         console.log('devicePixelRatio:', window.devicePixelRatio);
         console.log('Текущая ширина рендера:', size.width);
         console.log('Текущая высота рендера:', size.height);
 
-        //renderer.shadowMap.enabled = true; // Включаем карту теней
-        // renderer.shadowMap.type = THREE.BasicShadowMap; // Настройка типа теней (мягкие)
+        renderer.shadowMap.enabled = true; // Включаем карту теней
+        renderer.shadowMap.type = THREE.BasicShadowMap; // Настройка типа теней (мягкие)
         // Установите начальное значение экспозиции
-        // renderer.toneMapping = THREE.ReinhardToneMapping;
-        // renderer.toneMappingExposure = parseFloat(exposureSlider.value);
-        // renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+        renderer.toneMappingExposure = parseFloat(exposureSlider.value);
+        renderer.outputEncoding = THREE.sRGBEncoding;
 
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 0.6;
+        renderer.outputEncoding = THREE.sRGBEncoding;
 
+        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        pmremGenerator.compileEquirectangularShader();
+        const environment = new THREE.RoomEnvironment();
+        var defaultEnvMap = pmremGenerator.fromScene(environment).texture;
+        scene.environment = defaultEnvMap;
 
-         const pmremGenerator = new THREE.PMREMGenerator(renderer);
-         pmremGenerator.compileEquirectangularShader();
-         const environment = new THREE.RoomEnvironment();
-         var defaultEnvMap = pmremGenerator.fromScene(environment).texture;
-          scene.environment = defaultEnvMap;
 
         /* var floorGeometry = new THREE.PlaneGeometry(200, 200);
          var floorMaterial = new THREE.MeshStandardMaterial({ color: 0x999999, side: THREE.DoubleSide });
@@ -136,25 +136,50 @@
         document.body.appendChild(stats.dom);
 
 
+
+
         // Включаем тени
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Мягкие тени
+        // renderer.shadowMap.enabled = true;
+        // renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Мягкие тени
+
         // Установка белого цвета фона рендерера
-        renderer.setClearColor(0xffffff); // Белый фон
+        //renderer.setClearColor(0xffffff); // Белый фон
+
         // Добавляем направленный свет
-        /*const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(15, 20, 17.5);
-        directionalLight.castShadow = true;
-        directionalLight.shadow.mapSize.width = 4096;  // Высокое разрешение теней
-        directionalLight.shadow.mapSize.height = 4096;
-        directionalLight.shadow.bias = -0.001; // Смещение для устранения артефактов
-        scene.add(directionalLight);*/
+        /* const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+         directionalLight.position.set(15, 20, 17.5);
+         directionalLight.castShadow = true;
+         directionalLight.shadow.mapSize.width = 4096;  // Высокое разрешение теней
+         directionalLight.shadow.mapSize.height = 4096;
+         directionalLight.shadow.bias = -0.00001; // Смещение для устранения артефактов
+         scene.add(directionalLight);*/
 
         // Добавляем окружающий свет
-      //  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
-      //  scene.add(ambientLight);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
 
-
+        /*// Создаем точечный свет для имитации освещения от ламп или окон
+        const pointLight = new THREE.PointLight(0xffffff, 1, 100); // интенсивность и радиус
+        pointLight.position.set(5, 100, 5); // установите позицию над объектом
+        scene.add(pointLight);
+        
+        // Добавляем еще один точечный свет в другую часть помещения для более равномерного освещения
+        const pointLight2 = new THREE.PointLight(0xffffff, 0.8, 50);
+        pointLight2.position.set(-5, 10, -5);
+        scene.add(pointLight2);
+        
+        // Добавляем направленный свет, чтобы создать эффект света, падающего из окна или двери
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+        directionalLight.position.set(10, 20, 10); // регулируем, чтобы имитировать солнце
+        directionalLight.castShadow = true; // добавляем тени для реалистичности
+        scene.add(directionalLight);
+        
+        // Настраиваем тени для улучшенного эффекта
+        renderer.shadowMap.enabled = true;
+        pointLight.castShadow = true;
+        pointLight2.castShadow = true;
+        directionalLight.shadow.mapSize.width = 1024;
+        directionalLight.shadow.mapSize.height = 1024;*/
         // Пример объекта
         /* const geometry = new THREE.BoxGeometry(1, 1, 1);
          const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
@@ -164,37 +189,37 @@
          scene.add(cube);*/
 
         // Плоскость для теней
-        /* const planeGeometry = new THREE.PlaneGeometry(500, 500);
-         const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 });
-         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-         plane.rotation.x = -Math.PI / 2;
-         plane.position.y = -1;
-         plane.receiveShadow = true;
-         scene.add(plane);*/
+        /*  const planeGeometry = new THREE.PlaneGeometry(500, 500);
+          const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 });
+          const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+          plane.rotation.x = -Math.PI / 2;
+          plane.position.y = 0;
+          plane.receiveShadow = true;
+          scene.add(plane);*/
 
         // Свет сверху
-        /*const lightTop = new THREE.DirectionalLight(0xffffff, 0.5);
-        lightTop.position.set(0, 10, 0); // свет сверху
-        lightTop.castShadow = true;
-        scene.add(lightTop);
-        
-        // Свет справа
-        const lightRight = new THREE.DirectionalLight(0xffffff, 0.5);
-        lightRight.position.set(10, 5, 0); // свет справа
-        lightRight.castShadow = true;
-        scene.add(lightRight);
-        
-        // Свет слева
-        const lightLeft = new THREE.DirectionalLight(0xffffff, 0.5);
-        lightLeft.position.set(-10, 5, 0); // свет слева
-        lightLeft.castShadow = true;
-        scene.add(lightLeft);
-        
-        // Свет спереди
-        const lightFront = new THREE.DirectionalLight(0xffffff, 0.5);
-        lightFront.position.set(0, 5, 10); // свет спереди
-        lightFront.castShadow = true;
-        scene.add(lightFront);*/
+        /*  const lightTop = new THREE.DirectionalLight(0xffffff, 0.5);
+          lightTop.position.set(0, 10, 0); // свет сверху
+          lightTop.castShadow = true;
+          scene.add(lightTop);
+          
+          // Свет справа
+          const lightRight = new THREE.DirectionalLight(0xffffff, 0.5);
+          lightRight.position.set(10, 5, 0); // свет справа
+          lightRight.castShadow = true;
+          scene.add(lightRight);
+          
+          // Свет слева
+          const lightLeft = new THREE.DirectionalLight(0xffffff, 0.5);
+          lightLeft.position.set(-10, 5, 0); // свет слева
+          lightLeft.castShadow = true;
+          scene.add(lightLeft);
+          
+          // Свет спереди
+          const lightFront = new THREE.DirectionalLight(0xffffff, 0.5);
+          lightFront.position.set(0, 5, 10); // свет спереди
+          lightFront.castShadow = true;
+          scene.add(lightFront);*/
 
         var loader = new THREE.GLTFLoader();
 
@@ -212,15 +237,15 @@
                         gltf.scene.traverse(function (node) {
                             //console.log(node.type);
                             if (node.isMesh) {
-                                // console.log('Object is mesh');
+                                console.log('Object is mesh');
                                 // node.castShadow = true; // Объекты будут отбрасывать тени
-                                node.receiveShadow = true; // Объекты будут получать тени
+                                // node.receiveShadow = true; // Объекты будут получать тени
                             }
 
                             if (node.isLight) {
                                 console.log('Object is Light');
                                 // node.castShadow = true; // Объекты будут отбрасывать тени
-                                //  node.shadow.bias = -0.01;
+                                //  node.shadow.bias = -0.00001;
                             }
                         });
                         gltf.scene.traverse(function (node) {
@@ -308,40 +333,54 @@
         camera.lookAt(2, cameraHeight, 1);
 
 
-// Создаем камеру для карты (вид сверху)
-const mapCamera = new THREE.OrthographicCamera(-10, 10, 10, -10, 0.1, 100);
-mapCamera.position.set(0, 20, 0); // Камера расположена высоко и смотрит вниз
-mapCamera.layers.enable(0); 
-mapCamera.lookAt(0, 0, 0); // Смотрит на центр сцены
+        // Создаем камеру для карты (вид сверху)
+      /*  const mapCamera = new THREE.OrthographicCamera(-5, 5, 5, -5, 0.1, 100);
+        mapCamera.position.set(0, 2.5, 0); // Камера расположена высоко и смотрит вниз
+        mapCamera.layers.enable(1);
+        mapCamera.lookAt(0, 0, 0); // Смотрит на центр сцены
 
-// Рендер для карты
-const mapRenderer = new THREE.WebGLRenderer();
-mapRenderer.setSize(200, 200); // Размер карты (например, 200x200 пикселей)
-document.body.appendChild(mapRenderer.domElement);
+        // Создаем рендер для миникарты
+        const mapRenderer = new THREE.WebGLRenderer({ }); // Используйте alpha, если хотите видеть прозрачный фон
+      /*  mapRenderer.setSize(250, 250); // Размер карты
+        mapRenderer.domElement.style.position = 'absolute'; // Позиционирование миникарты
+        mapRenderer.domElement.style.top = '10px'; // Расположение снизу
+        mapRenderer.domElement.style.left = '10px'; // Расположение слева
+        mapRenderer.domElement.style.pointerEvents = 'none'; // Отключаем взаимодействие с миникартой
+        container.appendChild(mapRenderer.domElement); // Добавляем миникарту в контейнер
+*/
 
-// Создание маркера для отображения положения основной камеры на карте
-const markerGeometry = new THREE.CircleGeometry(0.2, 32); // Маленький кружок
-const markerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Красный цвет
-const cameraMarker = new THREE.Mesh(markerGeometry, markerMaterial);
-scene.add(cameraMarker);
+        // Создаем материал для круга
+        const circleMaterial1 = new THREE.MeshBasicMaterial({ color: 0x0000ff }); // 
 
-// Функция для обновления положения маркера на карте
-function updateCameraMarker() {
-    cameraMarker.position.set(camera.position.x, 0.1, camera.position.z); // Обновляем положение маркера
-}
+        // Создаем геометрию круга
+        const circleGeometry1 = new THREE.CircleGeometry(0.2, 32); // Радиус 0.1, 32 сегмента
 
-        /*  const sunlight = new THREE.DirectionalLight(0xffffff, 1); // белый свет с интенсивностью 1
-          sunlight.position.set(50, 100, 50); // позиция света
-          sunlight.target.position.set(0, 0, 0); // направление света на центр сцены
-          scene.add(sunlight);
-          scene.add(sunlight.target); // добавляем цель света в сцену
-          sunlight.castShadow = true;
-  
-          sunlight.shadow.mapSize.width = 1024;  // разрешение карты теней по ширине
-          sunlight.shadow.mapSize.height = 1024; // разрешение карты теней по высоте
-          sunlight.shadow.camera.near = 0.5;     // минимальная дистанция для теней
-          sunlight.shadow.camera.far = 500;      // максимальная дистанция для теней
-          sunlight.shadow.bias = -0.005;*/
+        // Создаем меш круга
+        const circleMesh = new THREE.Mesh(circleGeometry1, circleMaterial1);
+        circleMesh.position.set(camera.position.x, 0.1, camera.position.z); // Устанавливаем позицию на месте камеры
+        circleMesh.rotation.x = -Math.PI / 2; // Поворачиваем круг, чтобы он был горизонтально
+        circleMesh.layers.set(1);
+        // Добавляем круг в сцену
+        scene.add(circleMesh);
+        // camera.layers.disable(1);
+        // Функция для обновления положения маркера на карте
+        function updateCameraMarker() {
+            mapCamera.position.set(camera.position.x, 2.5, camera.position.z);
+            circleMesh.position.set(camera.position.x, 0.1, camera.position.z);
+        }
+
+        /*   const sunlight = new THREE.DirectionalLight(0xffffff, 1); // белый свет с интенсивностью 1
+           sunlight.position.set(50, 100, 50); // позиция света
+           sunlight.target.position.set(0, 0, 0); // направление света на центр сцены
+           scene.add(sunlight);
+           scene.add(sunlight.target); // добавляем цель света в сцену
+           sunlight.castShadow = true;
+   
+           sunlight.shadow.mapSize.width = 1024;  // разрешение карты теней по ширине
+           sunlight.shadow.mapSize.height = 1024; // разрешение карты теней по высоте
+           sunlight.shadow.camera.near = 0.5;     // минимальная дистанция для теней
+           sunlight.shadow.camera.far = 500;      // максимальная дистанция для теней
+           sunlight.shadow.bias = -0.005;*/
 
 
         var raycaster = new THREE.Raycaster();
@@ -360,28 +399,18 @@ function updateCameraMarker() {
         context.fillStyle = 'rgba(255, 255, 255, 1)';
         context.fill();
 
-        var alphaTexture = new THREE.CanvasTexture(canvas);
-
-        /*  var circleMaterial = new THREE.MeshBasicMaterial({
-              color: 0xffffff,
-              alphaMap: alphaTexture,
-              transparent: true,
-              side: THREE.DoubleSide
-          });
-  
-          var circleGeometry = new THREE.CircleGeometry(0.25, 32);
-  
-          var circle = new THREE.Mesh(circleGeometry, circleMaterial);
-          circle.rotation.x = -Math.PI / 2;
-          circle.visible = true;
-          scene.add(circle);*/
-
         // Создание круга (должно выполняться один раз)
-        const circleGeometry = new THREE.CircleGeometry(0.1, 32); // Радиус 0.1
-        const circleMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide }); // Зеленый цвет
-
+        const innerRadius = 0.08; // Внутренний радиус, который задает пустоту
+        const outerRadius = 0.1;  // Внешний радиус
+        const circleGeometry = new THREE.RingGeometry(innerRadius, outerRadius, 32); // Радиус 0.1
+        const circleMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            side: THREE.DoubleSide,
+            depthTest: false // Отключаем тестирование на глубину
+        });
         const circle = new THREE.Mesh(circleGeometry, circleMaterial);
-        circle.visible = false; // Изначально скрыт
+        // Устанавливаем высокий приоритет рендеринга для круга
+        circle.renderOrder = 9999;
         scene.add(circle); // Добавляем круг на сцену
 
         var isMouseDown = false;
@@ -403,6 +432,8 @@ function updateCameraMarker() {
             exposureValue.textContent = newExposure;
         }
 
+        let lastMousePosition = { x: 0, y: 0 }; // Для хранения последней позиции мыши
+        const MOVE_THRESHOLD = 5; // Пороговое значение для перемещения мыши (в пикселях)
 
         function onMouseMove(event) {
             // Преобразуем координаты мыши в диапазон [-1, 1]
@@ -412,48 +443,76 @@ function updateCameraMarker() {
             // Обновляем Raycaster
             raycaster.setFromCamera(mouse, camera);
 
-            // Пересечения с объектами сцены, исключая сферу
-            var intersects = raycaster.intersectObjects(scene.children.filter(obj =>/*obj !== currentSphere &&*/ obj !== circle), true);
-
+            // Пересечения с объектами сцены, исключая круг
+            var intersects = raycaster.intersectObjects(scene.children.filter(obj => obj !== circle), true);
 
             if (intersects.length > 0) {
                 var intersect = intersects[0];
 
-                // Устанавливаем позицию круга на поверхность объекта
-                circle.position.copy(intersect.point); // Позиция круга равна точке пересечения
+                // Устанавливаем позицию круга на точку пересечения
+                circle.position.copy(intersect.point);
 
                 // Получаем нормаль к поверхности
-                const normal = intersect.face.normal.clone(); // Получаем нормаль к поверхности
+                const normal = intersect.face.normal.clone();
 
-                // Создаем вектор "вверх" для ориентации круга
-                const up = new THREE.Vector3(0, 1, 0);
+                // Выводим отладочную информацию
+                // console.log('Intersection point:', intersect.point);
+                // console.log('Intersection normal:', normal);
 
-                // Устанавливаем ориентацию круга так, чтобы он был параллелен поверхности
+                // Инициализируем вектор "вверх"
+                let up = new THREE.Vector3(0, 1, 0);
+
+                // Если нормаль направлена вдоль оси X
+                if (Math.abs(normal.x) > 0.9) {
+                    // Используем ось Z как "вверх" для поверхностей, направленных вдоль оси X
+                    up = new THREE.Vector3(0, 0, 1);
+                }
+                // Если нормаль направлена вдоль оси Z (например, {x: 0, y: 0, z: -1})
+                else if (Math.abs(normal.z) > 0.9) {
+                    // Используем ось Y как "вверх", чтобы круг правильно ориентировался по Z
+                    up = new THREE.Vector3(0, 1, 0);
+                }
+
+                // Рассчитываем кватернион на основе нормали
                 const quaternion = new THREE.Quaternion();
-                quaternion.setFromUnitVectors(up, normal); // Вычисляем поворот на основе нормали
+                quaternion.setFromUnitVectors(up, normal);
 
-                circle.quaternion.copy(quaternion); // Применяем этот поворот к кругу
+                // Применяем рассчитанный поворот
+                circle.quaternion.copy(quaternion);
 
-                circle.visible = true; // Делаем круг видимым
-                container.classList.add('cursor-pointer'); // Изменяем курсор на "pointer"
+                // Делаем круг видимым
+                circle.visible = true;
+                container.classList.add('cursor-pointer');
                 container.classList.remove('cursor-clicking');
             } else {
-               // circle.visible = false; // Скрываем круг, если нет пересечений
+                // Если нет пересечений, скрываем круг
+                circle.visible = false;
                 container.classList.remove('cursor-pointer');
             }
 
             // Устанавливаем флаг перемещения мыши
             if (isMouseDown) {
-                mouseMoved = true;
+                const distanceMoved = Math.sqrt(
+                    Math.pow(event.clientX - lastMousePosition.x, 2) +
+                    Math.pow(event.clientY - lastMousePosition.y, 2)
+                );
+
+                if (distanceMoved > MOVE_THRESHOLD) {
+                    mouseMoved = true; // Устанавливаем флаг только если перемещение больше порога
+                }
             }
+
+            lastMousePosition.x = event.clientX; // Обновляем последнюю позицию
+            lastMousePosition.y = event.clientY;
         }
-
-
 
         function onMouseDown(event) {
             if (event.button === 0) {
                 mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
                 mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+
+                lastMousePosition.x = event.clientX; // Сохраняем начальную позицию мыши
+                lastMousePosition.y = event.clientY;
 
                 mouseX = event.clientX;
                 mouseY = event.clientY;
@@ -473,173 +532,33 @@ function updateCameraMarker() {
 
                 var mouseUpTime = performance.now();
                 var timeDiff = mouseUpTime - mouseDownTime;
-
-                if (!mouseMoved && timeDiff < 1000) {
-                    onClick(event);
+                console.log('клик:', timeDiff, mouseMoved);
+                if (!mouseMoved) {
+                    onClick(event); // Вызываем onClick только если мышь не двигалась
                 }
             }
         }
 
-
-
         function onClick(event) {
-            console.log('клик:');
-           // if (circle.visible) {
-                mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
-                mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+            mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+            mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
 
-                raycaster.setFromCamera(mouse, camera);
+            raycaster.setFromCamera(mouse, camera);
+            var intersects = raycaster.intersectObjects(scene.children.filter(obj => obj !== circle), true);
 
-                var intersects = raycaster.intersectObjects(scene.children, true);
-
-                if (intersects.length > 0) {
-                    var intersectPoint = intersects[0].point;
-                    intersectPoint.y = cameraHeight;
-
-
-                    // Ищем ближайшую панораму
-                    let closestIndex = -1;
-                    let closestDistance = Infinity;
-                    console.log('moveToPosition:', intersectPoint);
-
-
-                    /*  panoramas.forEach((panorama, index) => {
-                          const distance = intersectPoint.distanceTo(panorama.position);
-                          if (distance < closestDistance) {
-                              closestDistance = distance;
-                              closestIndex = index;
-                          }
-                      });
-                      console.log('panoramaIndex:', closestIndex);
-                      // Загружаем панораму, если найдена
-                      if (closestIndex !== -1) {
-                          loadPanorama(closestIndex);
-                      }*/
-
-                    // const index = intersects[0].object.userData.panoramaIndex; // Получаем индекс панорамы
-
-
-
-                    // loadPanorama(index); // Загружаем панораму
-
-                    moveToPosition(intersectPoint);
-                }
-                else
-                {
-                    console.log('нет пересечений:');
-                }
-           // }
+            if (intersects.length > 0) {
+                var intersectPoint = intersects[0].point;
+                intersectPoint.y = cameraHeight;
+                let closestIndex = -1;
+                let closestDistance = Infinity;
+                console.log('moveToPosition:', intersectPoint);
+                moveToPosition(intersectPoint);
+            }
+            else {
+                console.log('нет пересечений:');
+            }
         }
 
-        const panoramas = [
-            {
-                url: 'Panorama1.png',
-                position: new THREE.Vector3(0.3, 0.1, 1)
-            },
-            {
-                url: 'Panorama2.png',
-                position: new THREE.Vector3(6, 0.1, 2)
-            },
-            /* {
-                 url: 'Panorama3.png',
-                 position: new THREE.Vector3(3.4, 1.5, -1.8)
-             },*/
-            /*  {
-                  url: 'Panorama4.png',
-                  position: new THREE.Vector3(5.5, 1.5, -0.7)
-              },*/
-        ];
-
-        // Функция для создания кругов для панорам
-        /*  function createPanoramaCircles() {
-              const geometry = new THREE.CircleGeometry(2, 32); // Радиус круга и количество сегментов
-              const material = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide }); // Материал для круга
-  
-              panoramas.forEach(panorama => {
-                  const circle = new THREE.Mesh(geometry, material);
-                  circle.position.copy(panorama.position); // Устанавливаем позицию круга
-                  circle.rotation.x = -Math.PI / 2; // Поворачиваем круг, чтобы он лежал на полу
-                  circle.visible = false;
-                  // Добавляем обработчик клика
-                  circle.userData = { panoramaIndex: panoramas.indexOf(panorama) }; // Сохраняем индекс панорамы в userData
-                  circle.callback = loadPanorama; // Привязываем функцию загрузки панорамы
-  
-                  circle.onClick = () => {
-                      circle.callback(circle.userData.panoramaIndex);
-                  };
-  
-                  scene.add(circle); // Добавляем круг в сцену
-              });
-          }
-  
-          let currentSphere = null; // Переменная для хранения текущей сферы
-          let isTransitioning = false; // Флаг для контроля анимации перехода
-  
-         // Функция для загрузки новой панорамы
-  function loadPanorama(index) {
-      if (isTransitioning) return; // Если идет переход, игнорируем новый запрос
-      isTransitioning = true;
-  
-      const panorama = panoramas[index];
-      const panoramaUrl = panorama.url;
-      const targetPosition = panorama.position.clone();
-  
-      const textureLoader = new THREE.TextureLoader();
-      textureLoader.load(panoramaUrl, function (texture) {
-          texture.minFilter = THREE.LinearFilter;
-          texture.wrapS = THREE.RepeatWrapping;
-          texture.repeat.x = -1;
-  
-          // Если сфера для панорамы еще не создана, создаем ее
-          if (!currentSphere) {
-              const geometry = new THREE.SphereGeometry(20, 100, 100);
-              const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide });
-              currentSphere = new THREE.Mesh(geometry, material);
-              scene.add(currentSphere);
-          }
-  
-          // Запускаем плавное перемещение камеры и смену панорамы
-          animateCamera(targetPosition, texture);
-      }, undefined, function (error) {
-          console.error('Ошибка загрузки панорамы:', error);
-      });
-  }
-  
-  // Функция для плавного перемещения камеры и смены панорамы
-  function animateCamera(targetPosition, newTexture) {
-      const duration = 1000; // Время анимации перемещения камеры
-      const startPosition = camera.position.clone(); // Начальная позиция камеры
-      const startTime = performance.now();
-  
-      function animate() {
-          const currentTime = performance.now();
-          const elapsed = currentTime - startTime;
-  
-          // Рассчитываем долю анимации
-          const t = Math.min(elapsed / duration, 1);
-  
-          // Линейная интерполяция между начальной и целевой позицией
-          camera.position.x = THREE.MathUtils.lerp(startPosition.x, targetPosition.x, t);
-          camera.position.z = THREE.MathUtils.lerp(startPosition.z, targetPosition.z, t);
-          camera.position.y = 1.5; // Фиксированная высота камеры
-  
-          //camera.lookAt(targetPosition.clone().setY(1.5)); // Направляем камеру на целевую панораму
-  
-          if (t < 1) {
-              requestAnimationFrame(animate);
-          } else {
-              // По завершению перемещения меняем текстуру сферы
-              currentSphere.material.map = newTexture;
-              currentSphere.material.needsUpdate = true; // Обновляем материал после изменения текстуры
-              isTransitioning = false; // Сбрасываем флаг после завершения
-          }
-      }
-  
-      requestAnimationFrame(animate);
-  }*/
-
-
-        // Вызываем функцию для создания кругов для панорам
 
 
 
@@ -676,58 +595,15 @@ function updateCameraMarker() {
         var yaw = 0;
         var pitch = 0;
 
-          function init() {
-        // ... ваш код инициализации сцены, камеры и рендерера ...
+        function init() {
+            // ... ваш код инициализации сцены, камеры и рендерера ...          
 
-        // Создание сферы для отображения 360° панорамы
-        /*  const geometry = new THREE.SphereGeometry(10, 100, 100); // радиус сферы, количество сегментов
-          const material = new THREE.MeshBasicMaterial({
-              side: THREE.DoubleSide, // Сделать материал видимым с обеих сторон
-              depthWrite: false, // Не записывать в глубину
-          });*/
+            loader.load('flat_1C1.glb', function (gltf) {
+                model = gltf.scene;
 
-           loader.load('flat (2).glb', function (gltf) {
-               model = gltf.scene;
-
-               // Создаем невидимый материал для Raycast
-            /*   const invisibleMaterial = new THREE.MeshBasicMaterial({
-                   transparent: true,
-                   opacity: 0, // Делаем материал невидимым
-                   depthWrite: false // Отключаем запись в глубину
-               });*/
-
-              /* model.traverse(function (child) {
-                   if (child.isMesh) {
-                       // Заменяем материал на невидимый
-                       child.material = invisibleMaterial;
-
-                       // Добавляем ещё один Mesh с видимым материалом для Raycast
-                       const raycastMesh = new THREE.Mesh(child.geometry, invisibleMaterial.clone());
-                       raycastMesh.position.copy(child.position);
-                       raycastMesh.rotation.copy(child.rotation);
-                       raycastMesh.scale.copy(child.scale);
-                       model.add(raycastMesh); // Добавляем невидимый Mesh на ту же позицию
-
-                       // Сохраняем оригинальный материал, если нужно его использовать позже
-                       child.userData.originalMaterial = child.material;
-                       child.visible = false; // Делаем оригинальный объект невидимым
-                   }
-               });*/
-
-               scene.add(model); // Добавляем модель на сцену
-           });
-
-
-
-
-          // createPanoramaCircles();
-
-          // sphere = new THREE.Mesh(geometry, material);
-           // sphere.rotation.x = Math.PI; // Поворачиваем на 180 градусов, чтобы панорама была правильной
-          // scene.add(sphere);
-
-          // loadPanorama(0); // 
-       }
+                scene.add(model); // Добавляем модель на сцену
+            });
+        }
 
         function onDocumentMouseMove(event) {
             if (isMouseDown) {
@@ -856,14 +732,14 @@ function updateCameraMarker() {
             requestAnimationFrame(animate);
             renderer.render(scene, camera);
             // Обновляем маркер камеры
-    updateCameraMarker();
+           // updateCameraMarker();
 
-// Рендер сцены для карты (вид сверху)
-mapRenderer.render(scene, mapCamera);
+            // Рендер сцены для карты (вид сверху)
+           // mapRenderer.render(scene, mapCamera);
             stats.end(); // Конец измерения производительности
         }
 
-         init();
+        init();
         animate();
     </script>
 </body>
